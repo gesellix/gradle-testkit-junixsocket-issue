@@ -2,4 +2,4 @@
 
 Perform the compatibility check:
 
-    ./gradlew check
+    ./gradlew check --info -stacktrace

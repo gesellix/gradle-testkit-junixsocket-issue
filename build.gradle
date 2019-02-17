@@ -1,0 +1,21 @@
+plugins {
+    id "groovy"
+    id "java-gradle-plugin"
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation "org.codehaus.groovy:groovy-all:2.5.4"
+    implementation "de.gesellix:docker-client:2019-02-16T22-09-06"
+
+    testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
+    testImplementation gradleTestKit()
+}
+
+wrapper {
+    gradleVersion = "5.2.1"
+    distributionType = Wrapper.DistributionType.ALL
+}

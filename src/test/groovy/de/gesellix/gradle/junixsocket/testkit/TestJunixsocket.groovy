@@ -1,6 +1,6 @@
 package de.gesellix.gradle.junixsocket.testkit
 
-import de.gesellix.docker.client.DockerClientImpl
+import groovy.util.logging.Slf4j
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Rule
@@ -9,24 +9,25 @@ import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 
+@Slf4j
 class TestJunixsocket extends Specification {
 
   def "perform simple test"() {
     expect:
-    200 == new DockerClientImpl().ping().status.code
+    AFUNIXSocketCheck.supported()
   }
 
   def "perform async test"() {
     given:
-    def result = new AtomicInteger()
+    def result = new AtomicBoolean()
     def latch = new CountDownLatch(1)
 
     when:
     Thread.start {
-      def code = new DockerClientImpl().ping().status.code
-      result.set(code)
+      boolean supported = AFUNIXSocketCheck.supported()
+      result.set(supported)
       latch.countDown()
     }
     while (!latch.await(5, TimeUnit.SECONDS)) {
@@ -34,7 +35,7 @@ class TestJunixsocket extends Specification {
     }
 
     then:
-    result.get() == 200
+    result.get()
   }
 
   @Rule
@@ -44,13 +45,17 @@ class TestJunixsocket extends Specification {
     given:
     File buildFile = testProjectDir.newFile('build.gradle')
     buildFile << """
+            import org.newsclub.net.unix.AFUNIXSocket
+
             buildscript {
               repositories {
                 jcenter()
               }
             
               dependencies {
-                classpath "de.gesellix:docker-client:2019-02-16T22-09-06"
+                classpath('com.kohlschutter.junixsocket:junixsocket-core:2.1.2')
+                classpath('com.kohlschutter.junixsocket:junixsocket-common:2.1.2')
+
                 // work around https://github.com/kohlschutter/junixsocket/issues/59
                 classpath('com.kohlschutter.junixsocket:junixsocket-native-common:2.1.1') {
                   force = true
@@ -58,10 +63,14 @@ class TestJunixsocket extends Specification {
               }
             }
 
-            task dockerPing() {
+            task checkAFUNIXSupport() {
               doFirst {
-                def result = new de.gesellix.docker.client.DockerClientImpl().ping()
-                logger.lifecycle("request succeeded: " + (result.status.code == 200))
+                boolean supported = AFUNIXSocket.isSupported()
+                logger.lifecycle("AFUNIXSocket.isSupported(): \${supported}")
+              }
+              doLast {
+                AFUNIXSocket socket = AFUNIXSocket.newInstance()
+                logger.lifecycle("AFUNIXSocket.newInstance(): \${socket}")
               }
             }
         """
@@ -69,12 +78,11 @@ class TestJunixsocket extends Specification {
     when:
     def result = GradleRunner.create()
         .withProjectDir(testProjectDir.root)
-        .withArguments('dockerPing', '--debug', '--info', '--stacktrace')
+        .withArguments('checkAFUNIXSupport', '--debug', '--info', '--stacktrace')
         .withPluginClasspath()
         .build()
 
     then:
-    result.output.contains("request succeeded: true")
-    result.task(':dockerPing').outcome == TaskOutcome.SUCCESS
+    result.task(':checkAFUNIXSupport').outcome == TaskOutcome.SUCCESS
   }
 }

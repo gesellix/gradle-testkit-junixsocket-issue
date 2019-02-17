@@ -53,13 +53,8 @@ class TestJunixsocket extends Specification {
               }
             
               dependencies {
-                classpath('com.kohlschutter.junixsocket:junixsocket-core:2.1.2')
-                classpath('com.kohlschutter.junixsocket:junixsocket-common:2.1.2')
-
-                // work around https://github.com/kohlschutter/junixsocket/issues/59
-                classpath('com.kohlschutter.junixsocket:junixsocket-native-common:2.1.1') {
-                  force = true
-                }
+                classpath('com.kohlschutter.junixsocket:junixsocket-core:2.2.0')
+                classpath('com.kohlschutter.junixsocket:junixsocket-common:2.2.0')
               }
             }
 

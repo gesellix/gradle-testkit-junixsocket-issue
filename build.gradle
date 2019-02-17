@@ -10,13 +10,8 @@ repositories {
 dependencies {
     implementation "org.codehaus.groovy:groovy:2.5.4"
 
-    implementation "com.kohlschutter.junixsocket:junixsocket-core:2.1.2"
-    implementation "com.kohlschutter.junixsocket:junixsocket-common:2.1.2"
-
-    // work around https://github.com/kohlschutter/junixsocket/issues/59
-    implementation("com.kohlschutter.junixsocket:junixsocket-native-common:2.1.1") {
-        force = true
-    }
+    implementation "com.kohlschutter.junixsocket:junixsocket-core:2.2.0"
+    implementation "com.kohlschutter.junixsocket:junixsocket-common:2.2.0"
 
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     testImplementation gradleTestKit()
